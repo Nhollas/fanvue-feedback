@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@import "@fanvue/ui/styles/theme.css";
+@source "../../node_modules/@fanvue/ui";
+
+@theme inline {
+  --color-page: #000000;
+  --color-surface: #151515;
+  --color-surface-hover: #1c1c1c;
+  --color-accent: #4ef16a;
+  --color-accent-muted: #4ef16a33;
+  --color-accent-hover: #5ae882;
+  --color-secondary: #9772ff;
+  --color-secondary-muted: #9772ff20;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #ffffff80;
+  --color-text-tertiary: #ffffff66;
+  --color-border-subtle: #ffffff1a;
+  --color-border-hover: #ffffff40;
+
+  /* Status colors */
+  --color-status-requested: #ffffff80;
+  --color-status-requested-bg: #ffffff1a;
+  --color-status-under-review: #9772ff;
+  --color-status-under-review-bg: #9772ff20;
+  --color-status-planned: #4ef16a;
+  --color-status-planned-bg: #4ef16a20;
+  --color-status-in-progress: #4fb2f9;
+  --color-status-in-progress-bg: #4fb2f920;
+  --color-status-completed: #1cc848;
+  --color-status-completed-bg: #1cc84820;
+  --color-status-rejected: #ce2d2d;
+  --color-status-rejected-bg: #ce2d2d20;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-text-primary);
+}

@@ -1,0 +1,62 @@
+{
+  "name": "fanvue-feedback",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:generate": "drizzle-kit generate",
+    "prepare": "husky",
+    "knip": "knip"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,json,mjs}": "biome check --write --no-errors-on-unmatched"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^3.0.47",
+    "@fanvue/ui": "^2.0.0",
+    "@flags-sdk/vercel": "^1.2.1",
+    "@neondatabase/serverless": "^1.0.2",
+    "ai": "^6.0.134",
+    "drizzle-orm": "^0.45.1",
+    "flags": "^4.0.5",
+    "next": "16.2.1",
+    "nuqs": "^2.8.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.8",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/lodash.isequal": "^4.5.8",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/browser-playwright": "^4.1.0",
+    "dotenv": "^17.3.1",
+    "drizzle-kit": "^0.31.10",
+    "husky": "^9.1.7",
+    "knip": "^6.0.2",
+    "lint-staged": "^16.4.0",
+    "lodash.isequal": "^4.5.0",
+    "msw": "^2.12.14",
+    "playwright": "^1.58.2",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0",
+    "vitest-browser-react": "^2.1.0"
+  }
+}

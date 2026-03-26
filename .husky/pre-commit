@@ -1,0 +1,2 @@
+pnpm run knip
+npx lint-staged
