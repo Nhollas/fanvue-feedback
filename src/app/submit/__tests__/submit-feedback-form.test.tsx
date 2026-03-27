@@ -1,14 +1,37 @@
 import { HttpResponse, http } from "msw";
-import { describe, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
+import { page } from "vitest/browser";
+import { render } from "vitest-browser-react";
 import type { SubmitFeedbackState } from "@/actions/submit-feedback";
+import { SubmitFeedbackForm } from "@/app/submit/submit-feedback-form";
+import {
+  type SubmitFeedbackFn,
+  SubmitFeedbackProvider,
+} from "@/contexts/submit-feedback";
 import { browserWorker, withJsonBody } from "../../../../tests/support/msw";
-import { expect, test } from "./submit-feedback-fixture";
+import { noopSubmitFeedback } from "../../../../tests/support/stubs";
+import { submitFeedbackPageObject } from "./submit-feedback-page-object";
+
+type MountOptions = {
+  duplicateDetection?: boolean;
+  submitFeedback?: SubmitFeedbackFn;
+};
+
+async function mount(options?: MountOptions) {
+  const action = options?.submitFeedback ?? noopSubmitFeedback;
+  await render(
+    <SubmitFeedbackProvider value={action}>
+      <SubmitFeedbackForm
+        duplicateDetection={options?.duplicateDetection ?? false}
+      />
+    </SubmitFeedbackProvider>,
+  );
+  return submitFeedbackPageObject(page);
+}
 
 describe("SubmitFeedbackForm", () => {
-  test("renders title, description, category fields and submit button", async ({
-    submitFeedbackForm,
-  }) => {
-    const form = await submitFeedbackForm.mount();
+  test("renders title, description, category fields and submit button", async () => {
+    const form = await mount();
 
     await form.expectTitleFieldVisible();
     await form.expectDescriptionFieldVisible();
@@ -17,9 +40,7 @@ describe("SubmitFeedbackForm", () => {
     await form.expectSubmitButtonText("Submit");
   });
 
-  test("displays category validation error from server action", async ({
-    submitFeedbackForm,
-  }) => {
+  test("displays category validation error from server action", async () => {
     const errorState: SubmitFeedbackState = {
       errors: { category: "Category is required" },
       values: { title: "Test title", description: "" },
@@ -27,7 +48,7 @@ describe("SubmitFeedbackForm", () => {
 
     const submitFeedback = vi.fn().mockResolvedValueOnce(errorState);
 
-    const form = await submitFeedbackForm.mount({ submitFeedback });
+    const form = await mount({ submitFeedback });
     await form.fillTitle("Test title");
     await form.fillDescription("Some description");
     await form.submit();
@@ -35,9 +56,7 @@ describe("SubmitFeedbackForm", () => {
     await form.expectErrorVisible("Category is required");
   });
 
-  test("displays title validation error from server action", async ({
-    submitFeedbackForm,
-  }) => {
+  test("displays title validation error from server action", async () => {
     const errorState: SubmitFeedbackState = {
       errors: { title: "Title is required" },
       values: { title: "", description: "" },
@@ -45,7 +64,7 @@ describe("SubmitFeedbackForm", () => {
 
     const submitFeedback = vi.fn().mockResolvedValueOnce(errorState);
 
-    const form = await submitFeedbackForm.mount({ submitFeedback });
+    const form = await mount({ submitFeedback });
     // Fill with whitespace to bypass browser required validation;
     // server trims and rejects empty titles
     await form.fillTitle("   ");
@@ -55,9 +74,7 @@ describe("SubmitFeedbackForm", () => {
     await form.expectErrorVisible("Title is required");
   });
 
-  test("preserves field values on validation error", async ({
-    submitFeedbackForm,
-  }) => {
+  test("preserves field values on validation error", async () => {
     const errorState: SubmitFeedbackState = {
       errors: { category: "Category is required" },
       values: {
@@ -68,7 +85,7 @@ describe("SubmitFeedbackForm", () => {
 
     const submitFeedback = vi.fn().mockResolvedValueOnce(errorState);
 
-    const form = await submitFeedbackForm.mount({ submitFeedback });
+    const form = await mount({ submitFeedback });
     await form.fillTitle("My feedback title");
     await form.fillDescription("Some description");
     await form.submit();
@@ -77,12 +94,10 @@ describe("SubmitFeedbackForm", () => {
     await expect.element(form.getDescription()).toHaveValue("Some description");
   });
 
-  test("calls submitFeedback action with form data on submit", async ({
-    submitFeedbackForm,
-  }) => {
+  test("calls submitFeedback action with form data on submit", async () => {
     const submitFeedback = vi.fn().mockResolvedValueOnce({});
 
-    const form = await submitFeedbackForm.mount({ submitFeedback });
+    const form = await mount({ submitFeedback });
     await form.fillTitle("New feature request");
     await form.fillDescription("Please add this feature");
     await form.selectCategory("Creator");
@@ -95,9 +110,7 @@ describe("SubmitFeedbackForm", () => {
     expect(formData.get("category")).toBe("creator");
   });
 
-  test("recovers from validation error on resubmit", async ({
-    submitFeedbackForm,
-  }) => {
+  test("recovers from validation error on resubmit", async () => {
     const submitFeedback = vi
       .fn()
       .mockResolvedValueOnce({
@@ -107,7 +120,7 @@ describe("SubmitFeedbackForm", () => {
       } satisfies SubmitFeedbackState)
       .mockResolvedValueOnce({ submissionCount: 2 });
 
-    const form = await submitFeedbackForm.mount({ submitFeedback });
+    const form = await mount({ submitFeedback });
     await form.fillTitle("My idea");
     await form.fillDescription("Details here");
     await form.submit();
@@ -121,9 +134,7 @@ describe("SubmitFeedbackForm", () => {
     await form.expectErrorHidden("Category is required");
   });
 
-  test("disables submit button and shows pending text while submitting", async ({
-    submitFeedbackForm,
-  }) => {
+  test("disables submit button and shows pending text while submitting", async () => {
     let resolveSubmit!: (value: SubmitFeedbackState) => void;
     const submitFeedback = vi
       .fn()
@@ -134,7 +145,7 @@ describe("SubmitFeedbackForm", () => {
           ),
       );
 
-    const form = await submitFeedbackForm.mount({ submitFeedback });
+    const form = await mount({ submitFeedback });
     await form.fillTitle("My idea");
     await form.fillDescription("Details");
     await form.selectCategory("Creator");
@@ -151,9 +162,7 @@ describe("SubmitFeedbackForm", () => {
 });
 
 describe("SubmitFeedbackForm with duplicate detection", () => {
-  test("shows similar suggestions after title blur without needing description", async ({
-    submitFeedbackForm,
-  }) => {
+  test("shows similar suggestions after title blur without needing description", async () => {
     browserWorker.use(
       http.post(
         "/api/feedback/similar",
@@ -173,7 +182,7 @@ describe("SubmitFeedbackForm with duplicate detection", () => {
       ),
     );
 
-    const form = await submitFeedbackForm.mount({ duplicateDetection: true });
+    const form = await mount({ duplicateDetection: true });
     await form.fillTitle("dark mode for DMs");
     await form.blurTitle();
 
@@ -182,9 +191,7 @@ describe("SubmitFeedbackForm with duplicate detection", () => {
     await form.expectDismissButtonVisible();
   });
 
-  test("dismisses suggestions and allows normal submission", async ({
-    submitFeedbackForm,
-  }) => {
+  test("dismisses suggestions and allows normal submission", async () => {
     browserWorker.use(
       http.post(
         "/api/feedback/similar",
@@ -212,7 +219,7 @@ describe("SubmitFeedbackForm with duplicate detection", () => {
 
     const submitFeedback = vi.fn().mockResolvedValueOnce({});
 
-    const form = await submitFeedbackForm.mount({
+    const form = await mount({
       duplicateDetection: true,
       submitFeedback,
     });
@@ -230,10 +237,8 @@ describe("SubmitFeedbackForm with duplicate detection", () => {
     expect(submitFeedback).toHaveBeenCalled();
   });
 
-  test("does not show suggestions when duplicate detection is disabled", async ({
-    submitFeedbackForm,
-  }) => {
-    const form = await submitFeedbackForm.mount({ duplicateDetection: false });
+  test("does not show suggestions when duplicate detection is disabled", async () => {
+    const form = await mount({ duplicateDetection: false });
     await form.fillTitle("dark mode");
     await form.fillDescription("I want dark mode");
     await form.blurDescription();

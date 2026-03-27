@@ -133,6 +133,10 @@ export function homePagePageObject(page: BrowserPage) {
     clickPreviousPage: async () => {
       await self.getPreviousButton().click();
     },
+
+    async [Symbol.asyncDispose]() {
+      localStorage.clear();
+    },
   };
 
   return Object.assign(page, self);

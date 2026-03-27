@@ -1,24 +1,31 @@
-import { describe } from "vitest";
+import { describe, expect, test } from "vitest";
+import { page } from "vitest/browser";
+import { render } from "vitest-browser-react";
+import {
+  type ChangelogEntryWithFeedback,
+  ChangelogList,
+} from "@/app/changelog/changelog-list";
 import { buildChangelogEntry } from "../../../../tests/support/factories";
-import { expect, test } from "./changelog-list-fixture";
+import { changelogListPageObject } from "./changelog-list-page-object";
+
+async function mount(entries: ChangelogEntryWithFeedback[]) {
+  await render(<ChangelogList entries={entries} />);
+  return changelogListPageObject(page);
+}
 
 describe("ChangelogList", () => {
-  test("renders empty state when no entries exist", async ({
-    changelogList,
-  }) => {
-    const list = await changelogList.mount([]);
+  test("renders empty state when no entries exist", async () => {
+    const list = await mount([]);
     await list.expectEmptyStateVisible();
   });
 
-  test("renders changelog entry with title and description", async ({
-    changelogList,
-  }) => {
+  test("renders changelog entry with title and description", async () => {
     const entry = buildChangelogEntry({
       title: "Dark mode now available in messaging",
       description: "Full dark mode support for the messaging interface.",
     });
 
-    const list = await changelogList.mount([{ ...entry, feedbackItems: [] }]);
+    const list = await mount([{ ...entry, feedbackItems: [] }]);
 
     await list.expectEntryVisible("Dark mode now available in messaging");
     await list.expectDescriptionVisible(
@@ -26,15 +33,13 @@ describe("ChangelogList", () => {
     );
   });
 
-  test("renders linked feedback items with correct links", async ({
-    changelogList,
-  }) => {
+  test("renders linked feedback items with correct links", async () => {
     const feedbackId = crypto.randomUUID();
     const entry = buildChangelogEntry({
       title: "Faster video playback",
     });
 
-    const list = await changelogList.mount([
+    const list = await mount([
       {
         ...entry,
         feedbackItems: [
@@ -50,7 +55,7 @@ describe("ChangelogList", () => {
     );
   });
 
-  test("renders multiple entries in order", async ({ changelogList }) => {
+  test("renders multiple entries in order", async () => {
     const entries = [
       {
         ...buildChangelogEntry({ title: "Feature A" }),
@@ -62,18 +67,16 @@ describe("ChangelogList", () => {
       },
     ];
 
-    const list = await changelogList.mount(entries);
+    const list = await mount(entries);
 
     await list.expectEntryVisible("Feature A");
     await list.expectEntryVisible("Feature B");
   });
 
-  test("renders entry with multiple linked feedback items", async ({
-    changelogList,
-  }) => {
+  test("renders entry with multiple linked feedback items", async () => {
     const entry = buildChangelogEntry({ title: "Big release" });
 
-    const list = await changelogList.mount([
+    const list = await mount([
       {
         ...entry,
         feedbackItems: [
@@ -87,12 +90,10 @@ describe("ChangelogList", () => {
     await list.expectFeedbackLinkVisible("Feature request B");
   });
 
-  test("hides inspired by section when no feedback items linked", async ({
-    changelogList,
-  }) => {
+  test("hides inspired by section when no feedback items linked", async () => {
     const entry = buildChangelogEntry({ title: "Standalone update" });
 
-    const list = await changelogList.mount([{ ...entry, feedbackItems: [] }]);
+    const list = await mount([{ ...entry, feedbackItems: [] }]);
 
     await expect.element(list.getInspiredByLabel()).not.toBeInTheDocument();
   });

@@ -100,6 +100,10 @@ export function feedbackDetailPageObject(page: BrowserPage) {
     expectShippedLinkHidden: async () => {
       await expect.element(self.getShippedLink()).not.toBeInTheDocument();
     },
+
+    async [Symbol.asyncDispose]() {
+      localStorage.clear();
+    },
   };
 
   return Object.assign(page, self);

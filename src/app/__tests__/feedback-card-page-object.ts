@@ -62,6 +62,10 @@ export function feedbackCardPageObject(page: BrowserPage) {
     clickVote: async () => {
       await self.getVoteButton().click();
     },
+
+    async [Symbol.asyncDispose]() {
+      localStorage.clear();
+    },
   };
 
   return Object.assign(page, self);

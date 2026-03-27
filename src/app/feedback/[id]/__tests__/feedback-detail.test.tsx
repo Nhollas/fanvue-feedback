@@ -1,20 +1,45 @@
-import { afterEach, describe, vi } from "vitest";
-
+import { describe, expect, test, vi } from "vitest";
+import { page } from "vitest/browser";
+import { render } from "vitest-browser-react";
+import {
+  FeedbackDetail,
+  type FeedbackDetailProps,
+} from "@/app/feedback/[id]/feedback-detail";
+import { type AddCommentFn, AddCommentProvider } from "@/contexts/add-comment";
+import { type ToggleVoteFn, ToggleVoteProvider } from "@/contexts/toggle-vote";
 import {
   buildChangelogEntry,
   buildFeedback,
   buildStatusChange,
 } from "../../../../../tests/support/factories";
-import { expect, test } from "./feedback-detail-fixture";
+import {
+  noopAddComment,
+  noopToggleVote,
+} from "../../../../../tests/support/stubs";
+import { feedbackDetailPageObject } from "./feedback-detail-page-object";
 
-afterEach(() => {
-  localStorage.clear();
-});
+type MountOptions = FeedbackDetailProps & {
+  toggleVote?: ToggleVoteFn;
+  addComment?: AddCommentFn;
+};
+
+async function mount({
+  toggleVote = noopToggleVote,
+  addComment = noopAddComment,
+  ...props
+}: MountOptions) {
+  await render(
+    <ToggleVoteProvider value={toggleVote}>
+      <AddCommentProvider value={addComment}>
+        <FeedbackDetail {...props} />
+      </AddCommentProvider>
+    </ToggleVoteProvider>,
+  );
+  return feedbackDetailPageObject(page);
+}
 
 describe("FeedbackDetail", () => {
-  test("renders title, full description, vote count, category, and status", async ({
-    feedbackDetail,
-  }) => {
+  test("renders title, full description, vote count, category, and status", async () => {
     const item = buildFeedback({
       title: "Bulk schedule content across multiple days",
       description:
@@ -24,7 +49,7 @@ describe("FeedbackDetail", () => {
       status: "planned",
     });
 
-    const detail = await feedbackDetail.mount({ item });
+    await using detail = await mount({ item });
 
     await detail.expectTitleVisible(
       "Bulk schedule content across multiple days",
@@ -37,30 +62,26 @@ describe("FeedbackDetail", () => {
     await detail.expectStatusVisible("Planned");
   });
 
-  test("shows full description without truncation", async ({
-    feedbackDetail,
-  }) => {
+  test("shows full description without truncation", async () => {
     const longDescription =
       "This is a very long description that should be fully visible on the detail page without any truncation. ".repeat(
         5,
       );
     const item = buildFeedback({ description: longDescription });
-    const detail = await feedbackDetail.mount({ item });
+    await using detail = await mount({ item });
 
     const descriptionEl = detail.getDescription(longDescription.trim());
     await expect.element(descriptionEl).toBeVisible();
     await expect.element(descriptionEl).not.toHaveClass("line-clamp-2");
   });
 
-  test("renders fan category badge", async ({ feedbackDetail }) => {
+  test("renders fan category badge", async () => {
     const item = buildFeedback({ category: "fan" });
-    const detail = await feedbackDetail.mount({ item });
+    await using detail = await mount({ item });
     await detail.expectCategoryVisible("Fan");
   });
 
-  test("renders each status with correct badge text", async ({
-    feedbackDetail,
-  }) => {
+  test("renders each status with correct badge text", async () => {
     const statuses = [
       { status: "requested" as const, label: "Requested" },
       { status: "under_review" as const, label: "Under Review" },
@@ -72,25 +93,25 @@ describe("FeedbackDetail", () => {
 
     for (const { status, label } of statuses) {
       const item = buildFeedback({ status });
-      const detail = await feedbackDetail.mount({ item });
+      await using detail = await mount({ item });
       await detail.expectStatusVisible(label);
     }
   });
 
-  test("formats large vote counts compactly", async ({ feedbackDetail }) => {
+  test("formats large vote counts compactly", async () => {
     const item = buildFeedback({ voteCount: 2400 });
-    const detail = await feedbackDetail.mount({ item });
+    await using detail = await mount({ item });
     await detail.expectVoteCountVisible("2.4K");
   });
 
-  test("toggles vote on click", async ({ feedbackDetail }) => {
+  test("toggles vote on click", async () => {
     const toggleVote = vi.fn().mockResolvedValueOnce({
       voted: true,
       voteCount: 88,
     });
 
     const item = buildFeedback({ voteCount: 87 });
-    const detail = await feedbackDetail.mount({ item, toggleVote });
+    await using detail = await mount({ item, toggleVote });
 
     await detail.expectNotVoted();
     await detail.clickVote();
@@ -98,14 +119,14 @@ describe("FeedbackDetail", () => {
     await detail.expectVoteCountVisible("88");
   });
 
-  test("toggles vote off on second click", async ({ feedbackDetail }) => {
+  test("toggles vote off on second click", async () => {
     const toggleVote = vi
       .fn()
       .mockResolvedValueOnce({ voted: true, voteCount: 88 })
       .mockResolvedValueOnce({ voted: false, voteCount: 87 });
 
     const item = buildFeedback({ voteCount: 87 });
-    const detail = await feedbackDetail.mount({ item, toggleVote });
+    await using detail = await mount({ item, toggleVote });
 
     await detail.clickVote();
     await detail.expectVoted();
@@ -115,17 +136,13 @@ describe("FeedbackDetail", () => {
     await detail.expectVoteCountVisible("87");
   });
 
-  test("hides status history when no status changes exist", async ({
-    feedbackDetail,
-  }) => {
+  test("hides status history when no status changes exist", async () => {
     const item = buildFeedback();
-    const detail = await feedbackDetail.mount({ item, statusChanges: [] });
+    await using detail = await mount({ item, statusChanges: [] });
     await detail.expectStatusHistoryHidden();
   });
 
-  test("shows status stepper with all steps when accordion is opened", async ({
-    feedbackDetail,
-  }) => {
+  test("shows status stepper with all steps when accordion is opened", async () => {
     const item = buildFeedback({ status: "planned" });
     const statusChanges = [
       buildStatusChange({
@@ -142,7 +159,7 @@ describe("FeedbackDetail", () => {
       }),
     ];
 
-    const detail = await feedbackDetail.mount({ item, statusChanges });
+    await using detail = await mount({ item, statusChanges });
 
     await detail.expectStatusHistoryTriggerVisible();
     await detail.toggleStatusHistory();
@@ -151,23 +168,19 @@ describe("FeedbackDetail", () => {
     await detail.expectStatusStepVisible("Planned");
   });
 
-  test("hides shipped link when no changelog entry exists", async ({
-    feedbackDetail,
-  }) => {
+  test("hides shipped link when no changelog entry exists", async () => {
     const item = buildFeedback();
-    const detail = await feedbackDetail.mount({ item });
+    await using detail = await mount({ item });
     await detail.expectShippedLinkHidden();
   });
 
-  test("shows shipped link when a changelog entry is linked", async ({
-    feedbackDetail,
-  }) => {
+  test("shows shipped link when a changelog entry is linked", async () => {
     const item = buildFeedback({ status: "completed" });
     const entry = buildChangelogEntry({
       title: "Dark mode now available in messaging",
     });
 
-    const detail = await feedbackDetail.mount({
+    await using detail = await mount({
       item,
       changelogEntry: entry,
     });
