@@ -5,30 +5,40 @@ A feedback platform where creators and fans submit feature requests, vote on ide
 ## Prerequisites
 
 - Node.js 18+
-- PostgreSQL (Neon serverless)
-- OpenAI API key (optional, for duplicate detection)
+- [Neon](https://neon.tech) PostgreSQL database
+- [OpenAI API key](https://platform.openai.com/api-keys)
+- [Vercel Flags](https://vercel.com/docs/flags) connection string
 
 ## Setup
 
+Create a `.env.local` with the following:
+
+```
+DATABASE_URL="your_database_url"
+FLAGS="your_flags_connection_string"
+OPENAI_API_KEY="your_openai_api_key"
+```
+
+Then:
+
 ```bash
-cp .env.example .env.local   # configure DATABASE_URL
-npm install
-npm run db:push              # apply schema to database
-npm run db:seed              # populate seed data
-npm run dev                  # http://localhost:3000
+pnpm install
+pnpm db:push              # apply schema to database
+pnpm db:seed              # populate seed data
+pnpm dev                  # http://localhost:3000
 ```
 
 ## Useful Commands
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start dev server |
-| `npm run build` | Production build |
-| `npm run test` | Run tests |
-| `npm run typecheck` | Type check |
-| `npm run lint` | Biome check |
-| `npm run format` | Auto-format |
-| `npm run db:push` | Sync schema to database |
-| `npm run db:seed` | Seed database |
-| `npm run db:generate` | Generate migrations |
-| `npm run knip` | Find unused code |
+| `pnpm dev` | Start dev server |
+| `pnpm build` | Production build |
+| `pnpm test` | Run tests |
+| `pnpm typecheck` | Type check |
+| `pnpm lint` | Biome check |
+| `pnpm format` | Auto-format |
+| `pnpm db:push` | Sync schema to database |
+| `pnpm db:seed` | Seed database |
+| `pnpm db:generate` | Generate migrations |
+| `pnpm knip` | Find unused code |
