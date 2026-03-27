@@ -1,9 +1,8 @@
 import isEqual from "lodash.isequal";
 import type { HttpResponseResolver } from "msw";
 import { setupWorker } from "msw/browser";
-import { handlers } from "./handlers";
 
-export const browserWorker = setupWorker(...handlers);
+export const browserWorker = setupWorker();
 
 /**
  * Higher-order resolver: only fires when the request JSON body
