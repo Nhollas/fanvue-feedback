@@ -13,10 +13,7 @@ export function withJsonBody(
   resolver: HttpResponseResolver,
 ): HttpResponseResolver {
   return async (args) => {
-    const actual = (await args.request.clone().json()) as Record<
-      string,
-      unknown
-    >;
+    const actual = await args.request.clone().json();
     if (!isEqual(actual, expected)) return;
     return resolver(args);
   };
