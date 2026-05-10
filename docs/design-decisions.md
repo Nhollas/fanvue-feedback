@@ -1,6 +1,6 @@
-# Design Decisions: Fanvue Feedback Rebuild
+# Design Decisions
 
-Tracking each design decision as we work through the rebuild plan.
+Tracking each design decision as we work through the project.
 
 ---
 

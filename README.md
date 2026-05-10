@@ -2,6 +2,8 @@
 
 A feedback platform where creators and fans submit feature requests, vote on ideas, and track progress through to completion.
 
+> Personal portfolio project, not affiliated with or endorsed by Fanvue. Built as an exercise using the public [`@fanvue/ui`](https://www.npmjs.com/package/@fanvue/ui) design system.
+
 ## Prerequisites
 
 - Node.js 18+
