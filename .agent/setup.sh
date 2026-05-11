@@ -2,3 +2,4 @@
 set -euo pipefail
 
 pnpm install --frozen-lockfile
+pnpm exec next typegen
