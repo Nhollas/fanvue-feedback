@@ -14,6 +14,7 @@ export function Header() {
         <nav className="flex items-center gap-6">
           <Suspense>
             <NavLink href="/">Feedback</NavLink>
+            <NavLink href="/roadmap">Roadmap</NavLink>
             <NavLink href="/changelog">Changelog</NavLink>
           </Suspense>
         </nav>
