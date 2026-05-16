@@ -1,8 +1,8 @@
 "use client";
 
-import { Button, Card, CardContent, CardFooter, CardHeader } from "@fanvue/ui";
+import { Button, Card, CardContent } from "@fanvue/ui";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { RelativeTime } from "@/components/relative-time";
 import type { RoadmapItem } from "./roadmap-content";
 
@@ -11,20 +11,22 @@ const COLLAPSED_COUNT = 10;
 export function ShippedColumn({ items }: { items: RoadmapItem[] }) {
   const [expanded, setExpanded] = useState(false);
 
-  const recentIds = new Set(
-    [...items]
-      .sort((a, b) => {
-        const aTime = a.latestStatusChange?.getTime() ?? 0;
-        const bTime = b.latestStatusChange?.getTime() ?? 0;
-        return bTime - aTime;
-      })
-      .slice(0, COLLAPSED_COUNT)
-      .map((item) => item.id),
+  // Collapsed view shows the most recent COLLAPSED_COUNT items in
+  // status-change date order; expanded view falls back to the column's
+  // vote-count order that arrives from the server.
+  const mostRecent = useMemo(
+    () =>
+      [...items]
+        .sort((a, b) => {
+          const aTime = a.latestStatusChange?.getTime() ?? 0;
+          const bTime = b.latestStatusChange?.getTime() ?? 0;
+          return bTime - aTime;
+        })
+        .slice(0, COLLAPSED_COUNT),
+    [items],
   );
 
-  const visible = expanded
-    ? items
-    : items.filter((item) => recentIds.has(item.id));
+  const visible = expanded ? items : mostRecent;
 
   if (items.length === 0) {
     return (
@@ -50,22 +52,22 @@ export function ShippedColumn({ items }: { items: RoadmapItem[] }) {
             className="absolute inset-0 rounded-md focus-visible:outline-none"
             aria-label={item.title}
           />
-          <CardHeader>
+          <div className="flex flex-col p-4 gap-2">
             <h3 className="typography-semibold-body-md text-content-primary line-clamp-2">
               {item.title}
             </h3>
-          </CardHeader>
-          <CardFooter className="gap-3">
-            <span className="text-sm text-white/60">
-              {item.voteCount} votes
-            </span>
-            {item.latestStatusChange && (
-              <RelativeTime
-                date={item.latestStatusChange}
-                className="text-sm text-white/40"
-              />
-            )}
-          </CardFooter>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-white/60">
+                {item.voteCount} votes
+              </span>
+              {item.latestStatusChange && (
+                <RelativeTime
+                  date={item.latestStatusChange}
+                  className="text-sm text-white/40"
+                />
+              )}
+            </div>
+          </div>
         </Card>
       ))}
 

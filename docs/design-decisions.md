@@ -64,10 +64,10 @@ Informed by UX research showing traditional upvote boards suffer from herd bias,
 | **Search & filter** | By status, category, and text |
 | **Comments** | Two-way conversation on each feedback item |
 | **Changelog / announcements** | Close the feedback loop — data shows 2.5x retention multiplier when users see their feedback become features |
+| **Public roadmap board view** | Forward-looking view of feedback grouped by status — pulled into Iteration 1 to give voters credible signal that votes lead somewhere |
 
 ### Deferred to Iteration 2
 
-- Public roadmap board view
 - Gamification / contributor badges
 - Opportunity scoring (importance x satisfaction)
 - Rich changelog with media (screenshots, GIFs)
